@@ -1,12 +1,20 @@
 # Overview
 Some examples of good object oriented coding practices (e.g. SOLID)
 
-# SOLID
-## Single Resposibility Principle (SRP)
-## Open / Close Principle (OCP)
-## Liskov Substitution Principle (LSP)
-## Interface Segregation Principle (ISP)
-## Dependency Inversion Principle (DIP)
+# Table of Contents
+  1. [SOLID](#solid)
+     1. [**S**ingle Responsibility Principle (SRP)](#single-responsibility-principle-srp)
+     2. [**O**pen/Closed Principle (OCP)](#openclosed-principle-ocp)
+     3. [**L**iskov Substitution Principle (LSP)](#liskov-substitution-principle-lsp)
+     4. [**I**nterface Segregation Principle (ISP)](#interface-segregation-principle-isp)
+     5. [**D**ependency Inversion Principle (DIP)](#dependency-inversion-principle-dip)
+
+## SOLID
+### Single Responsibility Principle (SRP)
+### Open/Closed Principle (OCP)
+### Liskov Substitution Principle (LSP)
+### Interface Segregation Principle (ISP)
+### Dependency Inversion Principle (DIP)
 We have a class `BookingTableService`, dependent on class `SQLAlchemyRestaurantRepo`. 
 
 ```python
