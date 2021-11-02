@@ -2,12 +2,18 @@
 Some examples of good object oriented coding practices (e.g. SOLID)
 
 # Table of Contents
-  1. [SOLID](#solid)
+1. [SOLID](#solid)
      1. [**S**ingle Responsibility Principle (SRP)](#single-responsibility-principle-srp)
      2. [**O**pen/Closed Principle (OCP)](#openclosed-principle-ocp)
      3. [**L**iskov Substitution Principle (LSP)](#liskov-substitution-principle-lsp)
      4. [**I**nterface Segregation Principle (ISP)](#interface-segregation-principle-isp)
      5. [**D**ependency Inversion Principle (DIP)](#dependency-inversion-principle-dip)
+2. [Coupling](#coupling)
+    1. [Private method]
+    2. [Command delegation to executor (instance without Dependency Injection)]
+    3. [Command Delegation to executor (instance with Dependency Injection)]
+    4. [Command Delegation to executor (interface with Dependency Injection)]
+    5. [Event Dispatch (with Dependency Injection)]
 
 ## SOLID
 ### Single Responsibility Principle (SRP)
@@ -279,3 +285,19 @@ session = Session()
 service = BookingTableService(SQLAlchemyRestaurantRepo(session))
 service.book_table(r.id)
 ```
+
+## Coupling
+Table below defines coupling level by amount of knowledge about an action and an action executor.
+|                                                                        | How action is done? | What action? | Where is executor instantiated? | What type executor is? | Coupling level |
+|------------------------------------------------------------------------|---------------------|--------------|---------------------------------|------------------------|----------------|
+| Private method                                                         | Yes                 | Yes          | Yes                             | Yes                    | Very Strong    |
+| Command Delegation to executor (instance without Dependency Injection) | No                  | Yes          | Yes                             | Yes                    | Strong         |
+| Command Delegation to executor  (instance with Dependency Injection)   | No                  | Yes          | No                              | Yes                    | Medium         |
+| Command Delegation to executor (interface with Dependency Injection)   | No                  | Yes          | No                              | No                     | Loose          |
+| Event dispatch (with Dependency Injection)                             | No                  | No           | No                              | No                     | Very Loose     |
+
+### Private method
+### Command delegation to executor (instance without Dependency Injection)
+### Command Delegation to executor (instance with Dependency Injection)
+### Command Delegation to executor (interface with Dependency Injection)
+### Event Dispatch (with Dependency Injection)
