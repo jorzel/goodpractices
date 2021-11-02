@@ -9,11 +9,11 @@ Some examples of good object oriented coding practices (e.g. SOLID)
      4. [**I**nterface Segregation Principle (ISP)](#interface-segregation-principle-isp)
      5. [**D**ependency Inversion Principle (DIP)](#dependency-inversion-principle-dip)
 2. [Coupling](#coupling)
-    1. [Private method]
-    2. [Command delegation to executor (instance without Dependency Injection)]
-    3. [Command Delegation to executor (instance with Dependency Injection)]
-    4. [Command Delegation to executor (interface with Dependency Injection)]
-    5. [Event Dispatch (with Dependency Injection)]
+    1. [Private method](#private-method)
+    2. [Command delegation to executor (instance without Dependency Injection)](#command-delegation-to-executor-instance-without-dependency-injection)
+    3. [Command delegation to executor (instance with Dependency Injection)](#command-delegation-to-executor-instance-with-dependency-injection)
+    4. [Command delegation to executor (interface with Dependency Injection)](#command-delegation-to-executor-interface-with-dependency-injection)
+    5. [Event dispatch (with Dependency Injection)](#event-dispatch-with-dependency-injection)
 
 ## SOLID
 ### Single Responsibility Principle (SRP)
@@ -125,14 +125,14 @@ class Restaurant:
     def _register_change(self, event: Event) -> None:
         self._changes.append(event)
 
-    def apply(self, event: Event):
+    def apply(self, event: Event) -> None:
         if event.name == 'booked_table':
             self._book_table(event)
 
-    def book_table(self):
+    def book_table(self) -> None:
         self._register_change(Event(name='booked_table', originator_id=self.id))
 
-    def _book_table(self, event: Event):
+    def _book_table(self, event: Event) -> None:
         # some implementation
 
 
@@ -212,7 +212,7 @@ class Restaurant:
     def __init__(self, restaurant_id: str):
         self.id = restaurant_id
     
-    def book_table(self):
+    def book_table(self) -> None:
         # some implementation
 
 
@@ -253,7 +253,7 @@ class Restaurant:
     def __init__(self, restaurant_id: str):
         self.id = restaurant_id
 
-    def book_table(self):
+    def book_table(self) -> None:
         # some implementation
 
 
@@ -287,14 +287,15 @@ service.book_table(r.id)
 ```
 
 ## Coupling
-Table below defines coupling level by amount of knowledge about an action and an action executor.
-|                                                                        | How action is done? | What action? | Where is executor instantiated? | What type executor is? | Coupling level |
-|------------------------------------------------------------------------|---------------------|--------------|---------------------------------|------------------------|----------------|
-| Private method                                                         | Yes                 | Yes          | Yes                             | Yes                    | Very Strong    |
-| Command Delegation to executor (instance without Dependency Injection) | No                  | Yes          | Yes                             | Yes                    | Strong         |
-| Command Delegation to executor (instance with Dependency Injection)    | No                  | Yes          | No                              | Yes                    | Medium         |
-| Command Delegation to executor (interface with Dependency Injection)   | No                  | Yes          | No                              | No                     | Loose          |
-| Event dispatch (with Dependency Injection)                             | No                  | No           | No                              | No                     | Very Loose     |
+Coupling is a degree of dependence between classes/modules/functions.
+The table below defines coupling level by amount of knowledge about a remote/delegated action (notification in our example) and the action executor.
+|                                                                        | How action is done? | Where is executor instantiated? | What type executor is? | What action? | Coupling level |
+|------------------------------------------------------------------------|---------------------|---------------------------------|------------------------|--------------|----------------|
+| Private method                                                         | Yes                 | Yes                             | Yes                    | Yes          | Very Strong    |
+| Command Delegation to executor (instance without Dependency Injection) | No                  | Yes                             | Yes                    | Yes          | Strong         |
+| Command Delegation to executor   (instance with Dependency Injection)  | No                  | No                              | Yes                    | Yes          | Medium         |
+| Command Delegation to executor (interface with Dependency Injection)   | No                  | No                              | No                     | Yes          | Loose          |
+| Event dispatch (with Dependency Injection)                             | No                  | No                              | No                     | No           | Very Loose     |
 
 ### Private method
 ```python
@@ -320,7 +321,7 @@ class BookingTableService:
     def __init__(self):
         self._notification_sender = NotificationSender()
 
-    def book_table(restaurant_id: str) -> None
+    def book_table(restaurant_id: str) -> None:
         # some implemenation
         self._notification_sender.send(recruitment_id=recruitment_id)
 
@@ -386,21 +387,11 @@ class Event:
     timestamp: datetime = datetime.now()
 
 
-class NotificationSender(ABC):
-    @abstractmethod
-    def send(self, **kwargs) -> None:
-        pass
-
-
-class SmsSender(NotificationSender):
-    def send(self, **kwargs) -> None:
-        # some implementation
-
 class EventHandler:
     def handle(self, events: List[Events]) -> None:
         for event in events:
             if event.name == 'booked_table':
-                # some implementation
+                # some implementation of sending notification
 
 
 class EventDispatcher(ABC):
