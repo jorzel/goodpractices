@@ -292,12 +292,138 @@ Table below defines coupling level by amount of knowledge about an action and an
 |------------------------------------------------------------------------|---------------------|--------------|---------------------------------|------------------------|----------------|
 | Private method                                                         | Yes                 | Yes          | Yes                             | Yes                    | Very Strong    |
 | Command Delegation to executor (instance without Dependency Injection) | No                  | Yes          | Yes                             | Yes                    | Strong         |
-| Command Delegation to executor  (instance with Dependency Injection)   | No                  | Yes          | No                              | Yes                    | Medium         |
+| Command Delegation to executor (instance with Dependency Injection)    | No                  | Yes          | No                              | Yes                    | Medium         |
 | Command Delegation to executor (interface with Dependency Injection)   | No                  | Yes          | No                              | No                     | Loose          |
 | Event dispatch (with Dependency Injection)                             | No                  | No           | No                              | No                     | Very Loose     |
 
 ### Private method
+```python
+class BookingTableService:
+    def book_table(restaurant_id: str) -> None:
+        # some implemenation
+        self._send_notification(restaurant_id)
+
+    def _send_notification(self, restaurant_id: str) -> None
+        logging.info(f'Table booked in {restaurant_id=}')
+
+
+BookingTableSerice().book_table(1)
+```
 ### Command delegation to executor (instance without Dependency Injection)
+```python
+class NotificationSender:
+    def send(self, **kwargs)-> None:
+        # some implementation
+
+
+class BookingTableService:
+    def __init__(self):
+        self._notification_sender = NotificationSender()
+
+    def book_table(restaurant_id: str) -> None
+        # some implemenation
+        self._notification_sender.send(recruitment_id=recruitment_id)
+
+
+BookingTableSerice().book_table(1)
+```
 ### Command Delegation to executor (instance with Dependency Injection)
+```python
+class NotificationSender:
+    def send(self, **kwargs) -> None:
+        # some implementation
+
+
+class BookingTableService:
+    def __init__(self, notification_sender: NotificationSender):
+        self._notification_sender = notification_sender
+
+    def book_table(restaurant_id: str) -> None:
+        # some implemenation
+        self._notification_sender.send(recruitment_id=recruitment_id)
+
+
+BookingTableSerice(notification_sender=NotificationSender()).book_table(1)
+```
 ### Command Delegation to executor (interface with Dependency Injection)
+```python
+from abc import ABC, abstractmethod
+
+class NotificationSender(ABC):
+    @abstractmethod
+    def send(self, **kwargs) -> None:
+        pass
+
+
+class SmsSender(NotificationSender):
+    def send(self, **kwargs) -> None:
+        # some implementation
+
+
+class BookingTableService:
+    def __init__(self, notification_sender: NotificationSender):
+        self._notification_sender = notification_sender
+
+    def book_table(restaurant_id: str) -> None:
+        # some implemenation
+        self._notification_sender.send(recruitment_id=recruitment_id)
+
+
+BookingTableSerice(notification_sender=SmsSender()).book_table(1)
+```
 ### Event Dispatch (with Dependency Injection)
+```python
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from datetime import datetime
+from typing import List
+
+
+@dataclass(frozen=True)
+class Event:
+    name: str
+    originatior_id: str
+    timestamp: datetime = datetime.now()
+
+
+class NotificationSender(ABC):
+    @abstractmethod
+    def send(self, **kwargs) -> None:
+        pass
+
+
+class SmsSender(NotificationSender):
+    def send(self, **kwargs) -> None:
+        # some implementation
+
+class EventHandler:
+    def handle(self, events: List[Events]) -> None:
+        for event in events:
+            if event.name == 'booked_table':
+                # some implementation
+
+
+class EventDispatcher(ABC):
+    @abstractmethod
+    def publish(self, events: List[Event]) -> None:
+        pass
+
+
+class FakeEventDispatcher(EventDispatcher):
+    def publish(self, events: List[Event]) -> None:
+        handler = EventHandler()
+        handler.handle(events)
+
+
+class BookingTableService:
+    def __init__(self, event_dispatcher: EventDispatcher):
+        self._event_dispatcher = event_dispatcher
+
+    def book_table(restaurant_id: str) -> None:
+        # some implemenation
+        events = [Event(name="booked_table", originator_id=restaurant_id)]
+        self._event_dispatcher.publish(events)
+
+
+BookingTableSerice(event_dispatcher=FakeEventDispatcher()).book_table(1)
+```
