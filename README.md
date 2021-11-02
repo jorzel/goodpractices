@@ -72,7 +72,7 @@ def create_period_by_name(name: str):
     else:
         raise NotImplementedError
 ```
-Transformation of `create_period_by_name` function in the way that introduction of new `Period` types
+We can change function `create_period_by_name` implementation in the way that introduction of new `Period` types
 is possible without any modifications of `create_period_by_name` function.
 
 ```python
@@ -84,9 +84,117 @@ def create_period_by_name(name: str):
 ```
 
 ### Liskov Substitution Principle (LSP)
+This principle claims that subtypes should not change interface of methods inherited from parent type.
+Thanks to it, parent type can be replaced by its subtype without breaking the application. In code below
+`SQLAlchemyRestaurantRepo` breaks inherited interface by not implementing `add` method.
+
+```python
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
+
+from sqlalchemy.orm import Session
+
+
+@dataclass(frozen=True)
+class Event:
+    name: str
+    originator_id: str
+    timestamp: datetime = datetime.now
+
+
+class Restaurant:
+    def __init__(self, restaurant_id: str, events: List[Event]):
+        self.id = restaurant_id
+        self.status: str
+        for event in events:
+            self.apply(event)
+        self._changes = []
+
+    @property
+    def changes(self) -> List[Event]:
+        return self._changes[:]
+
+    def _register_change(self, event: Event) -> None:
+        self._changes.append(event)
+
+    def apply(self, event: Event):
+        if event.name == 'booked_table':
+            self._book_table(event)
+
+    def book_table(self):
+        self._register_change(Event(name='booked_table', originator_id=self.id))
+
+    def _book_table(self, event: Event):
+        # some implementation
+
+
+class RestaurantRepo(ABC):
+    @abstractmethod
+    def get(self, restaurant_id: str) -> Optional[Restaurant]:
+        pass
+
+    @abstractmethod
+    def add(self, restaurant: Restaurant) -> None:
+        pass
+
+    @abstractmethod
+    def save(self, restaurant: Restaurant) -> None:
+        pass
+
+
+class SQLAlchemyRestaurantRepo(RestaurantRepo):
+    def __init__(self, session: Session):
+        self._session = session
+
+    def get(self, restaurant_id: str) -> Optional[Restaurant]:
+        events = self._session.query(Event).filter_by(originator_id=restaurant_id)
+        if events:
+            return Restaurant(restaurant_id, events)
+        return None
+
+    def add(self, restaurant: Restaurant) -> None:
+        raise NotImplementedError
+
+    def save(self, restaurant: Restaurant) -> None:
+        for event in restaurant.changes:
+            self._session..add(event)
+```
+
+We can fix LSP violation by using more compatible interface that is inherited by `SQLAlchemyRestaurantRepo`.
+
+```python
+class EventStoreRestaurantRepo(ABC):
+    @abstractmethod
+    def get(self, restaurant_id: str) -> Optional[Restaurant]:
+        pass
+
+    @abstractmethod
+    def save(self, restaurant: Restaurant) -> None:
+        pass
+
+
+class SQLAlchemyRestaurantRepo(EventStoreRestaurantRepo):
+    def __init__(self, session: Session):
+        self._session = session
+
+    def get(self, restaurant_id: str) -> Optional[Restaurant]:
+        events = self._session.query(Event).filter_by(originator_id=restaurant_id)
+        if events:
+            return Restaurant(restaurant_id, events)
+        return None
+
+    def save(self, restaurant: Restaurant) -> None:
+        for event in restaurant.changes:
+            self._session.add(event)
+```
+
 ### Interface Segregation Principle (ISP)
 ### Dependency Inversion Principle (DIP)
-We have a class `BookingTableService`, dependent on class `SQLAlchemyRestaurantRepo`. 
+This principle states that classes should be loosely coupled and high-level modules
+should not import anything from low-level modules.
+In our example, we have a class `BookingTableService` dependent on class `SQLAlchemyRestaurantRepo`. 
 
 ```python
 from typing import Optional
