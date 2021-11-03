@@ -18,8 +18,8 @@ Some examples of good object oriented coding practices (e.g. SOLID)
 ## SOLID
 ### Single Responsibility Principle (SRP)
 This principle states that class/function should do one thing and have only one reason to change.
-In the following example, method `book_table` is responsible for domain logic (booking table) and 
-sending notification.
+In the following example, method `book_table` is responsible for domain logic (booking table) and
+also some infrastructure code (sending notification).
 ```python
 from dataclasses import dataclass
 from typing import List, Optional
@@ -309,6 +309,76 @@ class SQLAlchemyRestaurantRepo(EventStoreRestaurantRepo):
 ```
 
 ### Interface Segregation Principle (ISP)
+This principles states that interface of a class should be coherent and not outgrown.
+Following implementation violetes ISP, because `BookingTableService` depends on a code that 
+is not used (`NotificationSender.send_email`).
+```python
+class User:
+    phone_number: str
+    email: str
+
+
+class NotificationSender:
+    def send_sms(self, user: User, text: str) -> None:
+        # some implementation
+
+    def send_email(self, user: User, text: str) -> None:
+        # some implmenetation        
+
+
+class BookingTableService:
+    def __init__(self, notification_sender: NotificationSender):
+        self._notification_sender = notification_sender
+
+    def book_table(self, restaurant_id: str, user: User) -> None:
+        # some logic
+        self._notification_sender.send_sms(user, "Send booked table notification")
+
+
+BookingTableService(NotificationSender()).book_table(
+    1, User(phone_number='12223332', email='test@test.pl')
+)
+```
+We can implement `NotificationSender` as separated classes and avoid inheriting not necessary code.
+```python
+from abc import ABC, abstractmethod
+
+
+class User:
+    phone_number: str
+    email: str
+
+
+class NotificationSender(ABC):
+    @abstractmethod
+    def send(self, user: User, text: str) -> None:
+        pass
+
+
+class SmsSender(NotificationSender):
+    def send(self, user: User, text: str) -> None:
+        # some implementation
+
+
+class EmailSender(NotificationSender):
+    def send(self, user: User, text: str) -> None:
+        # some implementation
+
+
+class BookingTableService:
+    def __init__(self, notification_sender: NotificationSender):
+        self._notification_sender = notification_sender
+
+    def book_table(self, restaurant_id: str, user: User) -> None:
+        # some logic
+        self._notification_sender.send(user, "Send booked table notification")
+
+
+BookingTableService(SmsSender()).book_table(
+    1, User(phone_number='12223332', email='test@test.pl')
+)
+```
+
 ### Dependency Inversion Principle (DIP)
 This principle states that classes should be loosely coupled and high-level modules
 should not import anything from low-level modules.
