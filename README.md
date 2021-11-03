@@ -17,6 +17,118 @@ Some examples of good object oriented coding practices (e.g. SOLID)
 
 ## SOLID
 ### Single Responsibility Principle (SRP)
+This principle states that class/function should do one thing and have only one reason to change.
+In the following example, method `book_table` is responsible for domain logic (booking table) and 
+sending notification.
+```python
+from dataclasses import dataclass
+from typing import List, Optional
+
+
+@dataclass
+class User:
+    phone_number: str
+
+class Table:
+    def __init__(self):
+        self.is_booked = False
+
+    def book(self) -> None:
+        self.is_booked = True
+
+
+class SmsSender():
+    def send(self, user: User, text: str) -> None:
+        # some implementation
+
+
+class Restaurant:
+    def __init__(self, restaurant_id: str, tables: List[Table]):
+        self.id = restaurant_id
+        self.tables = tables
+
+    def book_table(self, user: User) -> None:
+        table = self._find_open_table()
+        if table:
+            table.book()
+            self._send_notification(user.phone_number)
+        else:
+            # exception or logging
+
+    def _find_open_table(self) -> Optional[Table]:
+        for table in self.tables:
+            if not table.is_booked:
+                return table
+        return None
+
+    def _send_notification(self, user: User) -> None:
+        sender = SmsSender()
+        sender.send(user, "Send booked table notification")  
+```
+We can improve this code by moving out sending notification responsibility from `Restuarant` class.
+
+```python
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import List, Optional
+
+
+@dataclass
+class User:
+    phone_number: str
+
+
+class Table:
+    def __init__(self):
+        self.is_booked = False
+
+    def book(self) -> None:
+        self.is_booked = True
+
+
+class NotificationSender(ABC):
+    @abstractmethod
+    def send(self, user: User, text: str) -> None:
+        pass
+
+
+class Restaurant:
+    def __init__(self, restaurant_id: str, tables: List: Table):
+        self.id = restaurant_id
+        self.tables = tables
+
+    def book_table(self) -> None:
+        table = self._find_open_table()
+        if table:
+            table.book()
+        else:
+            # exception or logging
+
+    def _find_open_table(self) -> Optional[Table]:
+        for table in self.tables:
+            if not table.is_booked:
+                return table
+        return None
+
+
+class RestaurantRepo(ABC):
+    @abstractmethod
+    def get(self, restaurant_id: str) -> Optional[Restaurant]:
+        pass
+
+
+class BookingTableService:
+    def __init__(self, notification_sender: NotificationSender, restaurant_repo: RestaurantRepo):
+        self._restaurant_repo = restaurant_repo
+        self._notification_sender = notification_sender
+
+    def book_table(self, restaurant_id: str, user: User) -> None:
+        restaurant = self._restuarant_repo.get(restuarant_id)
+        restuarant.book_table()
+        self._notification_sender.send(user, "Send booked table notification")
+
+```
+
 ### Open/Closed Principle (OCP)
 This principle insists that implementing a new feature should add new code without modifing existing one.
 We can see now that implementing new types of `Period` force us to modify `create_period_by_name` function.
