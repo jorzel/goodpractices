@@ -9,7 +9,8 @@ Some examples of good object oriented coding practices (e.g. SOLID)
      4. [**I**nterface Segregation Principle (ISP)](#interface-segregation-principle-isp)
      5. [**D**ependency Inversion Principle (DIP)](#dependency-inversion-principle-dip)
 2. [Cohesion and Coupling](#cohesion-and-coupling)
-    1. [Coupling as a knowledge](#coupling-as-a-knowledge)
+    1. [Code type from coupling and cohesion perspective](#code-type-from-coupling-and-cohesion-perspective)
+    2. [Coupling as a knowledge](#coupling-as-a-knowledge)
         1. [Private method](#private-method)
         2. [Command delegation to executor (instance without Dependency Injection)](#command-delegation-to-executor-instance-without-dependency-injection)
         3. [Command delegation to executor (instance with Dependency Injection)](#command-delegation-to-executor-instance-with-dependency-injection)
@@ -470,6 +471,12 @@ service.book_table(r.id)
 ```
 
 ## Cohesion and Coupling
+### Code type from coupling and cohesion perspective
+|                                                                        |  Loose coupling         | Tight coupling because of knowledge overload | Tight coupling because of too many dependencies |
+|------------------------------------------------------------------------|-------------------------|----------------------------------------------|:------------------------------------------------|
+|                              High cohesion                             |          IDEAL          |                                              |                                                 |
+|            Low cohesion because of too many responsibilities           |                         |                  God object                  |                                                 |
+| Low cohesion because of scattered responsibility (Classitis)           |  Destructive decoupling |  Poorly selected boundaries                  |  Poorly selected boundaries                     |
 ### Coupling as a knowledge
 Coupling is a degree of dependence between classes/modules/functions.
 The table below defines coupling level by amount of knowledge about a remote/delegated action (notification in our example) and the action executor.
