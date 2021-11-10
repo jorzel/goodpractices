@@ -8,18 +8,19 @@ Some examples of good object oriented coding practices (e.g. SOLID)
      3. [**L**iskov Substitution Principle (LSP)](#liskov-substitution-principle-lsp)
      4. [**I**nterface Segregation Principle (ISP)](#interface-segregation-principle-isp)
      5. [**D**ependency Inversion Principle (DIP)](#dependency-inversion-principle-dip)
-2. [Coupling](#coupling)
-    1. [Private method](#private-method)
-    2. [Command delegation to executor (instance without Dependency Injection)](#command-delegation-to-executor-instance-without-dependency-injection)
-    3. [Command delegation to executor (instance with Dependency Injection)](#command-delegation-to-executor-instance-with-dependency-injection)
-    4. [Command delegation to executor (interface with Dependency Injection)](#command-delegation-to-executor-interface-with-dependency-injection)
-    5. [Event dispatch (with Dependency Injection)](#event-dispatch-with-dependency-injection)
+2. [Cohesion and Coupling](#cohesion-and-coupling)
+    1. [Coupling as a knowledge](#coupling-as-a-knowledge)
+        1. [Private method](#private-method)
+        2. [Command delegation to executor (instance without Dependency Injection)](#command-delegation-to-executor-instance-without-dependency-injection)
+        3. [Command delegation to executor (instance with Dependency Injection)](#command-delegation-to-executor-instance-with-dependency-injection)
+        4. [Command delegation to executor (interface with Dependency Injection)](#command-delegation-to-executor-interface-with-dependency-injection)
+        5. [Event dispatch (with Dependency Injection)](#event-dispatch-with-dependency-injection)
 
 ## SOLID
 ### Single Responsibility Principle (SRP)
 This principle states that class/function should do one thing and have only one reason to change.
 In the following example, method `book_table` is responsible for domain logic (booking table) and
-also some infrastructure code (sending notification).
+also some infrastructure code (sending notification)
 ```python
 from dataclasses import dataclass
 from typing import List, Optional
@@ -182,7 +183,7 @@ class RecentWeek(Period):
         return datetime(self._now.year, self._now.month, self._now.day, 23, 59, 59)
 
 
-def create_period_by_name(name: str):
+def create_period_by_name(name: str) -> Period:
     if name == Today.name:
         return Today()
     elif name == Yesterday.name:
@@ -194,7 +195,7 @@ We can change function `create_period_by_name` implementation in the way that in
 is possible without any modifications of `create_period_by_name` function.
 
 ```python
-def create_period_by_name(name: str):
+def create_period_by_name(name: str) -> Period:
     for period_cls in Period.__subclasses__():
         if period_cls.name == name:
             return period_cls()
@@ -468,7 +469,8 @@ service = BookingTableService(SQLAlchemyRestaurantRepo(session))
 service.book_table(r.id)
 ```
 
-## Coupling
+## Cohesion and Coupling
+### Coupling as a knowledge
 Coupling is a degree of dependence between classes/modules/functions.
 The table below defines coupling level by amount of knowledge about a remote/delegated action (notification in our example) and the action executor.
 |                                                                        | How action is done? | Where is executor instantiated? | What type executor is? | What action? | Coupling level |
@@ -479,20 +481,20 @@ The table below defines coupling level by amount of knowledge about a remote/del
 | Command Delegation to executor (interface with Dependency Injection)   | No                  | No                              | No                     | Yes          | Loose          |
 | Event dispatch (with Dependency Injection)                             | No                  | No                              | No                     | No           | Very Loose     |
 
-### Private method
+#### Private method
 ```python
 class BookingTableService:
     def book_table(restaurant_id: str) -> None:
         # some implemenation
         self._send_notification(restaurant_id)
 
-    def _send_notification(self, restaurant_id: str) -> None
+    def _send_notification(self, restaurant_id: str) -> None:
         logging.info(f'Table booked in {restaurant_id=}')
 
 
 BookingTableSerice().book_table(1)
 ```
-### Command delegation to executor (instance without Dependency Injection)
+#### Command delegation to executor (instance without Dependency Injection)
 ```python
 class NotificationSender:
     def send(self, **kwargs)-> None:
@@ -510,7 +512,7 @@ class BookingTableService:
 
 BookingTableSerice().book_table(1)
 ```
-### Command Delegation to executor (instance with Dependency Injection)
+#### Command Delegation to executor (instance with Dependency Injection)
 ```python
 class NotificationSender:
     def send(self, **kwargs) -> None:
@@ -528,7 +530,7 @@ class BookingTableService:
 
 BookingTableSerice(notification_sender=NotificationSender()).book_table(1)
 ```
-### Command Delegation to executor (interface with Dependency Injection)
+#### Command Delegation to executor (interface with Dependency Injection)
 ```python
 from abc import ABC, abstractmethod
 
@@ -554,7 +556,7 @@ class BookingTableService:
 
 BookingTableSerice(notification_sender=SmsSender()).book_table(1)
 ```
-### Event Dispatch (with Dependency Injection)
+#### Event Dispatch (with Dependency Injection)
 ```python
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
